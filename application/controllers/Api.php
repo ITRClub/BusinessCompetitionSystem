@@ -1,6 +1,4 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
 /**
  * API访问处理类（主路由）
  * @package BCSApplication
@@ -8,13 +6,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * @copyright 2018 ITRClub All Rights Reserved
  * @author David Ding
  */
+
+defined('BASEPATH') OR exit('No direct script access allowed');
+
 class Api extends CI_Controller {
 
-	public function __construct() {
+	public function __construct()
+	{
 		parent::__construct();
-		if (!session_id()) {
-			session_start();
-		}
 	}
 
 	/**
