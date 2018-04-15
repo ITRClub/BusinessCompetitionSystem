@@ -16,9 +16,6 @@ class Authorization extends CI_Controller {
 	 */
 	public function __construct()
 	{
-		if (!session_id()) {
-			session_start();
-		}
 		parent::__construct();
 		if (!isset($_SESSION['account_name']) || !isset($_SESSION['session_token'])) {
 			header('Location: '.config_item('base_url').'/user/login?returnUrl='.urlencode($_SERVER['REQUEST_URI']));

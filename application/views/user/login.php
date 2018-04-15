@@ -22,11 +22,9 @@
 
 				<!-- Main -->
 					<section id="main">
-						<header>
-							<span class="avatar"><img src="<?php echo site_url(); ?>/assets/img/avatar.jpg" alt="" /></span>
-							<h1>用户登录</h1>
+						<span class="avatar"><img src="<?php echo site_url(); ?>/assets/img/avatar.jpg" alt="" /></span>
+							<font color="red" style="font-weight: 1300"><h1>用户登录</h1></font>
 							<p>BCS商赛系统用户中心</p>
-						</header>
 						
 						<hr />
 						<!--<h2>Extra Stuff!</h2>-->
