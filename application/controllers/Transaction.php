@@ -1,29 +1,51 @@
 <?php
 /**
  * C-Transaction交易
- * @author SmallOysyer <zhangjinghao@itrclub.com>
+ * @author Jerry Cheung <zhangjinghao@itrclub.com>
  * @copyright ITRClub 2017-2018
  */
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Transaction extends CI_Controller {
 
-	$userId=1;
+	public $userId=1;
 
 	public function __construct(){
 		parent::__construct();
 	}
 
+
+	/**
+	 * 交易所主页
+	 * @access public
+	 */
 	public function index()
 	{
-		$walletInfo=$this->Wallet_model->getInfo($this->userId);
-		$this->load->view('transaction/index',['walletInfo'=>$walletInfo]);
+		$coinName=array('btc','bch','eth','ltc','xrp');
+		foreach($coinName as $value){
+			$coinInfo[$value]=getCoinInfo($value);
+		}
+		
+		// @TEST 测试API接口
+		die(var_dump($coinInfo));
+		//$this->load->view('transaction/index',['coinInfo'=>$coinInfo]);
+	}
+
+
+	public function detail($coinName='')
+	{
+		$coinInfo=getCoinInfo($coinName);
+
+		// @TEST 测试API接口
+		die(var_dump($coinInfo));
+		//$this->load->view('transaction/detail',['coinName'=>$coinName,'coinInfo'=>$coinInfo]);
 	}
 
 
 	/**
 	 * 交易处理
 	 * @access public
+	 * @return json 交易是否成功
 	 */
 	public function toTransaction()
 	{
@@ -32,7 +54,8 @@ class Transaction extends CI_Controller {
 		$coinNum=$this->input->post('coinNum');
 
 		// 获取汇率并计算金额
-		$exRate=getCoinExchangeRate($coinName.'usd');
+		$coinInfo=getCoinInfo($coinName);
+		$exRate=$coinInfo['last'];
 		$money=$coinNum*$exRate;
 		
 		// 对钱包进行操作
@@ -54,9 +77,25 @@ class Transaction extends CI_Controller {
 		$status=$this->Wallet_model->updateInfo($walletInfo);
 		
 		if($status==true){
-		
+			// 交易记录
+			$this->db->query('INSERT INTO trans_log(type,coin_name,coin_num,unit_price,money,balance)',[$type,$coinName,$coinNum,$exRate,$money,$balance]);
+			// 回调
+			die(returnApiData(200,'success'));
 		}else{
-		
+			die(returnApiData(1,'transFailed'));
 		}
+	}
+		
+	/**
+	 * 显示交易记录列表
+	 * @access public
+	 * @return view 交易记录列表
+	 */
+	public function showTransLog()
+	{
+		$query=$this->db->query("SELECT * FROM trans_log");
+		$list=$query->result_array();
+
+		$this->load->view('transaction/log',['list'=>$list]);
 	}
 }
