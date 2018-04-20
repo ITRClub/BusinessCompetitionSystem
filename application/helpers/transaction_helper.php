@@ -1,5 +1,13 @@
 <?php 
 /**
+ * H-Transaction交易
+ * @author Jerry Cheung <zhangjinghao@itrclub.com>
+ * @copyright ITRClub 2017-2018
+ */
+
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+/**
  * 获取某货币的汇率
  * @param String 币种名称
  * @return array 货币信息

@@ -22,7 +22,11 @@ class User extends CI_Controller {
 
 	public function register()
 	{
-		$this->load->view('user/register');
+		// 生成并储存Token
+		$token=sha1(session_id().md5(time()));
+		$this->session->set_userdata('reg_token',$token);
+		
+		$this->load->view('user/register',['token'=>$token]);
 	}
 
 
@@ -31,13 +35,45 @@ class User extends CI_Controller {
 	 */
 	public function toLogin()
 	{
-		$this->input->post('phone');
-		$this->input->post('password');
-		$this->input->post('captcha');
-
-		$_SESSION['account_name'] = $_REQUEST['username'];
-		$_SESSION['session_token'] = uniqid('bcs_');
-		die(returnApiData(200, 'Login successfully.', ''));
+		$phone=$this->input->post('phone');
+		$password=$this->input->post('password');
+		$captcha=$this->input->post('captcha');
+		
+		// 校验验证码有效性
+		if($captcha!=$this->session->userdata('login_captcha')){
+			unset($_SESSION['login_captcha']);
+			die(returnApiData(1,'invaildCaptcha'));
+		}
+		
+		$query=$this->db->query('SELECT * FROM user WHERE phone=?',[$phone]);
+		if($query->num_rows()!=1){
+			unset($_SESSION['login_captcha']);
+			die(returnApiData(0,'invaildPwd'));
+		}else{
+			$info=$this->result_array();
+			$info=$info[0];
+			$password_indb=$info['password'];
+			$salt=$info['salt'];
+			$hashPassword=$this->encryptPassword($password,$salt);
+			
+			// 判断密码有效性
+			if($hashPassword==$password_indb){
+				// 更新用户最后登录时间
+				$nowTime=date('Y-m-d H:i:s');
+				$query2=$this->db->query('UPDATE user SET last_login_time=? WHERE phone=?',[$nowTime,$phone]);
+				
+				// 将用户资料存入session
+				$this->session->set_userdata('userId',$info['id']);
+				$this->session->set_userdata('realName',$info['real_name']);
+				$this->session->set_userdata('isAdmin',$info['is_admin']);
+				
+				unset($_SESSION['login_captcha']);
+				die(returnApiData(200,'success'));
+			}else{
+				unset($_SESSION['login_captcha']);
+				die(returnApiData(0,'invaildPwd'));
+			}
+		}
 	}
 
 
@@ -46,6 +82,14 @@ class User extends CI_Controller {
 	 */
 	public function toRegister()
 	{
+		$this->load->helper('string');
+		
+		// 校验Token有效性
+		$token=$this->input->post('token');
+		if($token!=$this->session->userdata('reg_token')){
+			die(returnApiData(403,'invaildToken'));
+		}
+		
 		$teamName=$this->input->post('teamName');
 		$realName=$this->input->post('realName');
 		$phone=$this->input->post('phone');
@@ -53,34 +97,57 @@ class User extends CI_Controller {
 		$phoneCaptcha=$this->input->post('phoneCaptcha');
 		
 		// 校验手机验证码有效性
-		if($phoneCaptcha!=$this->session->userdata('login_phoneCaptcha')){
-			die(returnApiData(403,'invaildPhoneCaptcha'))
+		if($phoneCaptcha!=$this->session->userdata('reg_phoneCaptcha')){
+			die(returnApiData(1,'invaildPhoneCaptcha'));
 		}
 		
-		$sql2="SELECT id FROM user WHERE phone=?";
-		$query2=$this->db->query($sql2,[$phone]);
-		if($query2->num_rows()!=0){
-			$ret=$this->ajax->returnData("2","havePhone");
-			die($ret);
+		// 检查是否已存在此手机
+		$sql1="SELECT id FROM user WHERE phone=?";
+		$query1=$this->db->query($sql1,[$phone]);
+		if($query1->num_rows()!=0){
+			unset($_SESSION['reg_phoneCaptcha']);
+			die(returnApiData(2,'havePhone'));
 		}
 		
-		die(returnApiData(200,'success'));
+		// 生成salt并加密
+		$salt=random_string();
+		$hashPassword=$this->safe->encryptPassword($password,$salt);
+		
+		$sql='INSERT INTO user(team_name,real_name,phone,password,salt) VALUES (?,?,?,?,?)';
+		$query=$this->db->query($sql,[$teamName,$realName,$phone,$hashPassword,$salt]);
+		$userId=$this->db->insert_id();
+		
+		$addWallet=$this->Wallet_model->add($userId);
+		
+		if($this->db->affected_rows()==1 && $addWallet==TRUE){
+			unset($_SESSION['reg_phoneCaptcha']);
+			die(returnApiData(200,'success'));
+		}else{
+			die(returnApiData(0,'failed'));
+		}
+	}
+	
+	
+	public function logout()
+	{
+		$this->load->view('user/logout');
 	}
 
 
-	/**
-	 * 用户异步注销请求处理方法
-	 */
 	public function toLogout()
 	{
 		session_destroy();
-		die(returnApiData(200, 'Logout successfully.', ''));
+		header('Location:'.base_url());
 	}
-
-
-	public function myWallet()
+	
+	
+	public function forgetPassword()
 	{
-		$walletInfo=$this->Wallet_model->getInfo($this->userId);
-		$this->load->view('user/myWallet',['walletInfo'=>$walletInfo]);
+		$this->load->view('user/forgetPwd');
+	}
+	
+	public function sendPhoneCaptcha()
+	{
+	
 	}
 }

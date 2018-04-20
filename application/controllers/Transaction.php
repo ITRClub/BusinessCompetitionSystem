@@ -8,10 +8,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Transaction extends CI_Controller {
 
-	public $userId=1;
+	public $userId;
 
 	public function __construct(){
 		parent::__construct();
+		$this->userId=$this->session->userdata('userId');
 	}
 
 
@@ -21,24 +22,32 @@ class Transaction extends CI_Controller {
 	 */
 	public function index()
 	{
-		$coinName=array('btc','bch','eth','ltc','xrp');
-		foreach($coinName as $value){
-			$coinInfo[$value]=getCoinInfo($value);
+		$allCoinName=$this->config->item('allCoinName');
+		$ret='array(';
+		
+		foreach($allCoinName as $value){
+			$ret.='"'.$value.'",';
 		}
 		
-		// @TEST 测试API接口
-		die(var_dump($coinInfo));
-		//$this->load->view('transaction/index',['coinInfo'=>$coinInfo]);
+		// 组装JS数组
+		$ret=substr($ret,0,strlen($ret)-1);
+		$ret.=');';
+		
+		$this->load->view('transaction/index',['allCoin'=>$ret]);
 	}
 
 
 	public function detail($coinName='')
 	{
-		$coinInfo=getCoinInfo($coinName);
-
-		// @TEST 测试API接口
-		die(var_dump($coinInfo));
-		//$this->load->view('transaction/detail',['coinName'=>$coinName,'coinInfo'=>$coinInfo]);
+		if($coinName==''){
+			show_404();
+		}
+		
+		// 生成并储存Token
+		$token=sha1(session_id().md5(time()));
+		$this->session->set_userdata('trans_token',$token);
+		
+		$this->load->view('transaction/detail',['coinName'=>$coinName,'token'=>$token]);
 	}
 
 
@@ -49,6 +58,12 @@ class Transaction extends CI_Controller {
 	 */
 	public function toTransaction()
 	{
+		// 校验Token有效性
+		$token=$this->input->post('token');
+		if($token!=$this->session->userdata('trans_token')){
+			die(returnApiData(403,'invaildToken'));
+		}
+		
 		$type=$this->input->post('type');
 		$coinName=$this->input->post('coinName');
 		$coinNum=$this->input->post('coinNum');
@@ -61,17 +76,17 @@ class Transaction extends CI_Controller {
 		// 对钱包进行操作
 		$walletInfo=$this->Wallet_model->getInfo($this->userId);
 		$balance=$walletInfo['balance'];
-		$coin_balance=$walletInfo['coin_balance'];
-		$coin_balance=json_decode($coin_balance);
+		$coinBalance=$walletInfo['coin_balance'];
+		$coinBalance=json_decode($coinBalance);
 		
 		if($type==1){
 			// 买入
 			$balance-=$money;
-			$coin_balance[$coinName]+=$coinNum;
+			$coinBalance[$coinName]+=$coinNum;
 		}elseif($type==2){
 			// 卖出
 			$balance+=$money;
-			$coin_balance[$coinName]-=$coinNum;
+			$coinBalance[$coinName]-=$coinNum;
 		}
 		
 		$status=$this->Wallet_model->updateInfo($walletInfo);
