@@ -1,4 +1,10 @@
 <?php 
+/**
+ * C-交易API
+ * @author Jerry Cheung <zhangjinghao@itrclub.com>
+ * @copyright ITRClub 2017-2018
+ */
+
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Api_transaction extends CI_Controller {
