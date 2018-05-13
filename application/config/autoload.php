@@ -103,7 +103,7 @@ $autoload['helper'] = array('url','transaction','api');
 | config files.  Otherwise, leave it blank.
 |
 */
-$autoload['config'] = array('custom');
+$autoload['config'] = array('custom','coin');
 
 /*
 | -------------------------------------------------------------------

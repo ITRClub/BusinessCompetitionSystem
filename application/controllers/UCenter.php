@@ -18,11 +18,17 @@ class UCenter extends CI_Controller {
 	
 	public function index()
 	{
-		//$this->load->view('login_page');
+		$this->safe->checkLogin();
+
+		$query=$this->db->query("SELECT COUNT(*) FROM trans_log WHERE user_id=?",[$this->userId]);
+		$list=$query->result_array();
+		$logCount=$list[0]['COUNT(*)'];
+
+		$this->load->view('ucenter/index',['logCount'=>$logCount]);
 	}
 	
 	
-	public function myWallet()
+	/*public function myWallet()
 	{
 		$walletInfo=$this->Wallet_model->getInfo($this->userId);
 		$this->load->view('user/myWallet',['walletInfo'=>$walletInfo]);
@@ -36,7 +42,7 @@ class UCenter extends CI_Controller {
 		$info=$list[0];
 		
 		$this->load->view('user/myProfile',['userInfo'=>$info]);
-	}
+	}*/
 	
 	
 	public function toUpdatePassword()
@@ -55,7 +61,7 @@ class UCenter extends CI_Controller {
 		$hashPassword1=$this->safe->encryptPassword($oldPassword,$salt_indb);
 		
 		if($hashPassword1!=$password_indb){
-			die(returnApiData(1,'invaildOldPwd'));
+			die(makeApiData(1,'invaildOldPwd'));
 		}
 		
 		$newSalt=random_string();
@@ -65,9 +71,25 @@ class UCenter extends CI_Controller {
 		$query2=$this->db->query($sql2,[$hashPassword2,$newSalt]);
 		
 		if($this->db->affected_rows()==1){
-			die(returnApiData(200,'success'));
+			die(makeApiData(200,'success'));
 		}else{
-			die(returnApiData(0,'failed'));
+			die(makeApiData(0,'failed'));
 		}
+	}
+
+
+	/**
+	 * 显示交易记录列表
+	 * @access public
+	 * @return view 交易记录列表
+	 */
+	public function showTransactionLog()
+	{
+		$this->safe->checkLogin();
+
+		$query=$this->db->query("SELECT * FROM trans_log WHERE user_id=?",[$this->userId]);
+		$list=$query->result_array();
+
+		$this->load->view('ucenter/transactionLog',['list'=>$list]);
 	}
 }

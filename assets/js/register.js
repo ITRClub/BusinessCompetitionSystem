@@ -1,6 +1,6 @@
 // SSO JavaScript Logic
 
-var RegisterServlet = '/User/toRegister';
+var RegisterServlet = '/api/signup';
 
 function doRegisterRequest() {
     if (document.getElementById('username').value == '' || document.getElementById('password').value == '' || document.getElementById('password2').value == '') {
@@ -18,11 +18,8 @@ function doRegisterRequest() {
         url: RegisterServlet,
         method: 'POST',
         data: {
-            'phone': username,
-            'password': password2,
-            'teamName': 'group',
-            'realName': 'none',
-            'phoneCaptcha': '0000'
+            'username': username,
+            'password2': password2
         },
         dataType: 'json',
         async: true,

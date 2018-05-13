@@ -46,4 +46,16 @@ class Safe {
 			header("Location:".base_url('/'));
 		}
 	}
+
+
+	/**
+	 * 判断当前页面是否有权限访问
+	 */
+	public function checkLogin()
+	{
+		// 判断是否已经登录
+		if($this->_CI->session->userdata('isLogin')!=1){
+			header("Location:".base_url('login'));
+		}
+	}
 }

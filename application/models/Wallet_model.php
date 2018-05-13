@@ -24,10 +24,10 @@ class Wallet_model extends CI_Model {
 		$userId=$this->session->userdata('userId');
 		
 		$balance=$info['balance'];
-		$coin_balance=$info['coin_balance'];
+		$coinBalance=$info['coin_balance'];
 		
-		$sql="UPDATE wallet SET balance=?,coin_balance=? WHERE user_id=?";
-		$query=$this->db->query($sql,[$balance,$coin_balance,$userId]);
+		$sql='UPDATE wallet SET balance=?,coin_balance=? WHERE user_id=?';
+		$query=$this->db->query($sql,[$balance,$coinBalance,$userId]);
 
 		if($this->db->affected_rows()==1){
 			return true;
@@ -45,7 +45,7 @@ class Wallet_model extends CI_Model {
 	public function add($userId)
 	{
 		
-		$balance=$this->config->item('balance');
+		$balance=$this->config->item('originBalance');
 		$allCoinName=$this->config->item('allCoinName');
 		
 		foreach($allCoinName as $value){

@@ -78,7 +78,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 		系统正在建设中，敬请期待！
 	</div>
 
-	<p class="footer">页面加载时间： <b>{elapsed_time}</b> 秒<br><?php echo  (ENVIRONMENT === 'development')?'ITR网站生态群专用内核 - <b>V'.CI_VERSION.'</b>':'' ?></p>
+	<p class="footer">页面加载时间： <b>{elapsed_time}</b> 秒<br><?php echo (ENVIRONMENT==='development')?'ITR网站生态群专用内核 - <b>V'.CI_VERSION.'</b>':''; ?></p>
 </div>
 
 </body>

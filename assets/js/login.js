@@ -1,6 +1,6 @@
 // SSO JavaScript Logic
 
-var LoginServlet = '/User/toLogin';
+var LoginServlet = '/api/signin';
 
 function doLoginRequest() {
     if (document.getElementById('username').value == '' || document.getElementById('password').value == '') {
@@ -13,9 +13,8 @@ function doLoginRequest() {
         url: LoginServlet,
         method: 'POST',
         data: {
-            'phone': username,
-            'password': password,
-            'captcha': '0000'
+            'username': username,
+            'password': password
         },
         dataType: 'json',
         async: true,
